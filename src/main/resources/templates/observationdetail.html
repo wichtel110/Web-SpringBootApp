@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+	<head>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- CSS -->
+
+			<link rel="stylesheet" th:href="@{/css/main.css}">
+
+	</head>
+	<body>
+
+		<nav class="nav">
+			<div class="row">
+				<div class="column">
+					<div class="nav__inner">
+						<a class="logo" th:href="@{/}"><span class="track">track</span>17</a>
+						<a th:href="@{/sichtung}">Sichtungen</a>
+						<a sec:authorize="isAnonymous()" th:href="@{/login}">Login</a>
+						<form sec:authorize="isAuthenticated()" th:action="@{/logout}" th:method="POST">
+							<b sec:authentication="name" class="color-white"></b>
+							<input class="button" type="submit" th:value="Logout"></button>
+						</form>
+						<a sec:authorize="hasRole('ADMIN')" th:href="@{/users}">UserManagement</a>
+						<a href="">DE <svg viewbox="0 0 8 8" class="icon"><use xlink:href="/images/open-iconic.svg#globe"></use></svg></a>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<div class="observation_detail">
+            <div class="row">
+                <div class="column">
+                    <img th:if="${observation.image != null and #strings.length(observation.image) > 0}" class="observation_detail__image" th:src="@{|/image/${observation.image}|}" alt="">
+                    <h1 class="h1" th:text="${observation.description}">Beschreibung</h1>
+                    <p>Finder: <span th:text="${observation.finder}"></span></p>
+                    <p>Location: <span th:text="${observation.location}"></span></p>
+                    <p>Date: <span th:text="${observation.date}"></span></p>
+                    <p>Daytime: <span th:each="dt: ${observation.daytime}" th:text="${dt}"></span></p>
+                    <p>rating: <span th:text="${observation.rating}"></span></p>
+                </div>
+            </div>
+		</div>
+		<div class="row">
+			<div class="column">
+				<div th:if="|${observation.longitude} != 0.0 && ${observation.latitude} != 0.0|" class="mapouter">
+					<div class="gmap_canvas">
+						<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+						th:src="@{|https://www.openstreetmap.org/export/embed.html?bbox=${observation.latitude},${observation.longitude},${observation.latitude},${observation.longitude}&amp;marker=${observation.longitude}%2C${observation.latitude}|}"
+						style="border: 1px solid black"></iframe><br/><small><a href="https://www.openstreetmap.org/?mlat=50.2031&amp;mlon=8.7083#map=13/50.2032/8.7084">Größere Karte anzeigen</a></small>
+					</div>
+					<style>.mapouter{overflow:hidden;height:300px;width:666px;}.gmap_canvas {background:none!important;height:300px;width:666px;}</style>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="row">
+			<div class="column">
+				<h2 class="h2">Kommentare</h2>
+
+				<div class="comment" th:each="c: ${comments}">
+					<img th:if="${c.avatar != null and #strings.length(c.avatar) > 0}" th:src="@{|/image/${c.avatar}|}" alt="" class="comment__image">
+					<img th:if="${c.avatar == null or #strings.length(c.avatar) <= 0}" th:src="@{/image/default-avatar.png}" class="comment__image">
+					<div class="comment__commentWrap">
+						<span class="comment__username" th:text="${c.loginName}">freedeebee</span>
+						<span class="comment__date" th:text="${c.createdAt}">23.10.2019</span>
+						<p class="comment__comment" th:text="${c.comment}"></p>
+					</div>
+					<div class="comment__edit" th:if="${#authentication.name} == ${c.loginName}">
+						<svg viewbox="0 0 8 8" class="icon observation__icon"><use xlink:href="/images/open-iconic.svg#trash"></use></svg>
+					</div>
+				</div>
+				<div class="spacing-medium"></div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="column">
+				<form th:action="@{__${#httpServletRequest.requestURI}__}" th:method="POST" th:object="${commentform}">
+					<input type="text" class="input" placeholder="Kommentar..." th:field="*{comment}">
+					<input type="submit" class="button" value="Kommentieren">
+				</form>
+			</div>
+		</div>
+
+	</body>
+</html>

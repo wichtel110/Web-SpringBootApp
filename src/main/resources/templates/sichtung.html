@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+	<head>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- CSS -->
+
+			<link rel="stylesheet" th:href="@{/css/main.css}">
+
+	</head>
+	<body>
+
+		<nav class="nav">
+			<div class="row">
+				<div class="column">
+					<div class="nav__inner">
+						<a class="logo" th:href="@{/}"><span class="track">track</span>17</a>
+						<a th:href="@{/sichtung}">Sichtungen</a>
+						<a sec:authorize="isAnonymous()" th:href="@{/login}">Login</a>
+						<form sec:authorize="isAuthenticated()" th:action="@{/logout}" th:method="POST">
+							<b sec:authentication="name" class="color-white"></b>
+							<input class="button" type="submit" th:value="Logout"></button>
+						</form>
+						<a sec:authorize="hasRole('ADMIN')" th:href="@{/users}">UserManagement</a>
+						<a href="">DE <svg viewbox="0 0 8 8" class="icon"><use xlink:href="/images/open-iconic.svg#globe"></use></svg></a>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<div class="observation">
+			<div class="row">
+				<div class="column">
+					<h1 class="h1">Aktuelle Sichtungen</h1>
+				</div>
+			</div>
+
+			<div th:each="s, iter: ${sichtungen}" class="observation_teaser">
+				<div class="row">
+					<div class="column">
+						<div class="observation_teaser__flex">
+							<div th:if="${s.image != null and #strings.length(s.image) > 0}" class="observation_teaser__image" th:style="|background-image: url(@{|/image/${s.image}|});|"></div>
+							<div class="observation_teaser__wrap">
+								<h3 class="h3" th:text="${s.description}">Beschreibung</h3>
+								<div class="observation_teaser__meta"><span th:text="${s.date}">23.10.1991</span> - <span th:text="${s.finder}">freedeebee</span></div>
+								<a th:href="@{|/sichtung/${s.id}|}" class="link">Read more</a>
+								<a th:if="${#authentication.name} == ${s.finder}" th:href="@{|/sichtung/${s.id}/edit|}" class="link">Edit</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="observation__background">
+				<div class="observation__bgbox">
+					<h2>Haben Sie eine 17 gesichtet?</h2>
+					<p>Dann am besten gleich eine neue Sichtung eintragen!</p>
+				</div>
+			</div>
+
+			<div sec:authorize="hasRole('MEMBER') or hasRole('ADMIN')" class="row">
+				<div class="column">
+
+					<form th:action="@{/sichtung}" th:method="POST" th:object="${sichtungform}" enctype="multipart/form-data">
+
+						<div class="observation__formElem">
+							<input class="input observation__input" type="text" id="location" th:field="*{location}" th:errorclass="alert-danger" th:placeholder="#{sichtung.form.location}">
+							<span class="observation__errormessage" th:if="${#fields.hasErrors('location')}" th:errors="*{location}">Location zu kurz</span>
+						</div>
+
+						<div class="observation__formElem">
+							<input class="input observation__input" type="date" id="date" th:field="*{date}" th:errorclass="alert-danger">
+							<span class="observation__errormessage" th:if="${#fields.hasErrors('date')}" th:errors="*{date}">Date muss ausgefüllt sein</span>
+						</div>
+
+						<div class="observation__formElem">
+							<div class="form-check" th:each="cb: ${daytimevals}">
+								<input class="control__input" type="checkbox" th:field="*{daytime}" th:value="${cb}" th:errorclass="alert-danger">
+								<label class="control__label" th:for="${#ids.prev('daytime')}" th:text="${cb}">morgens</label>
+							</div>
+							<span class="observation__errormessage" th:if="${#fields.hasErrors('daytime')}" th:errors="*{daytime}">Checkboxen dürfen nicht leer sein</span>
+						</div>
+
+						<div class="observation__formElem">
+							<label for="rating" th:text="#{sichtung.form.rating}">Rating</label>
+							<select class="select" id="rating" th:field="*{rating}" th:errorclass="alert-danger">
+								<option th:each="sb: ${ratingvals}" th:text="${sb}" th:value="${sb}"></option>
+							</select>
+							<span class="observation__errormessage" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}">Es muss eine Bewertung abgegeben werden</span>
+						</div>
+
+						<div class="observation__formElem">
+							<input class="input observation__input" type="text" id="description" th:field="*{description}" th:errorclass="alert-danger" th:placeholder="#{sichtung.form.description}">
+							<span class="observation__errormessage" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Darf nicht leer oder länger als 80 Zeichen sein</span>
+						</div>
+
+						<label for="avatar">Image</label>
+						<input class="input createuser__input createuser__input--file" type="file" id="avatar" name="image" placeholder="Bild">
+
+						<input class="button" type="submit" th:value="#{sichtung.form.submit}">
+
+					</form>
+
+				</div>
+			</div>
+
+			<div sec:authorize="isAnonymous()" class="row">
+				<div class="column">
+					<h2 class="h2">Noch kein Mitglied?</h2>
+					<p>Sichtungen können nur von Mitgliedern eingetragen werden. Registrieren Sie sich jetzt kostenfrei.</p>
+					<a href="/users/create" class="button">REGISTRIEREN</a>
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>
